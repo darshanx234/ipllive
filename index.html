@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plyr HLS Example</title>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" />
+    <script src="https://cdn.plyr.io/3.6.8/plyr.polyfilled.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+    <video id="player" controls crossorigin playsinline>
+        <!-- Your .m3u8 URL here -->
+        <source src="https://prod-sports-hin-gm.jiocinema.com/hls/live/2100329/hd_akamai_androidmob_avc_hin_ipl_s2_m2230324/master.m3u8" type="application/x-mpegURL">
+    </video>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let hls = null;
+            let player = null;
+
+            function updateQuality(newQuality) {
+                if (hls && newQuality !== 'auto') {
+                    hls.levels.forEach((level, levelIndex) => {
+                        if (level.height === newQuality) {
+                            hls.currentLevel = levelIndex;
+                        }
+                    });
+                } else if (hls) {
+                    hls.currentLevel = -1;
+                }
+            }
+
+            if (!Hls.isSupported()) {
+                player = new Plyr('#player');
+            } else {
+                hls = new Hls();
+                hls.loadSource('https://prod-sports-hin-gm.jiocinema.com/hls/live/2100329/hd_akamai_androidmob_avc_hin_ipl_s2_m2230324/master.m3u8');
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    let qualityOptions = hls.levels.map(level => level.height);
+                    qualityOptions.unshift('auto');
+
+                    player = new Plyr('#player', {
+                        controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen', 'quality'],
+                        i18n: {
+                            qualityLabel: 'Quality'
+                        },
+                        quality: {
+                            default: 'auto',
+                            options: qualityOptions,
+                            forced: true,
+                            onChange: (e) => updateQuality(e)
+                        }
+                    });
+                });
+                hls.attachMedia(document.querySelector('#player'));
+            }
+        });
+    </script>
+</body>
+</html>
